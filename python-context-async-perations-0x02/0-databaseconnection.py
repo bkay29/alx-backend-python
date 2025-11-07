@@ -1,9 +1,10 @@
 
 
+
 import sqlite3
 
 class DatabaseConnection:
-    """Custom context manager for handling database connections."""
+    """Custom context manager for handling sqlite3 database connections."""
 
     def __init__(self, db_name):
         self.db_name = db_name
@@ -17,10 +18,17 @@ class DatabaseConnection:
     def __exit__(self, exc_type, exc_value, traceback):
         """Commit or rollback based on whether an exception occurred, then close connection."""
         if self.connection:
-            if exc_type is not None:
-                # Rollback if there was an error
-                self.connection.rollback()
-            else:
-                # Commit changes if all went well
-                self.connection.commit()
-            self.connection.close()
+            try:
+                if exc_type is not None:
+                    self.connection.rollback()
+                else:
+                    self.connection.commit()
+            finally:
+                self.connection.close()
+
+if __name__ == "__main__":
+    with DatabaseConnection("users.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users")
+        results = cursor.fetchall()
+        print(results)
