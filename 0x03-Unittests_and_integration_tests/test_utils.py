@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Unit tests for utils.access_nested_map"""
+"""Unit tests for utils module"""
 
 import unittest
 from parameterized import parameterized
+from unittest.mock import patch, Mock
 import utils
 
 
@@ -26,8 +27,27 @@ class TestAccessNestedMap(unittest.TestCase):
         """Test that KeyError is raised for invalid paths"""
         with self.assertRaises(KeyError) as error:
             utils.access_nested_map(nested_map, path)
-        # Check that the exception message matches the missing key
         self.assertEqual(str(error.exception), f"'{path[-1]}'")
+
+
+class TestGetJson(unittest.TestCase):
+    """Tests for the get_json function"""
+
+    @parameterized.expand([
+        ("http://example.com", {"payload": True}),
+        ("http://holberton.io", {"payload": False}),
+    ])
+    @patch("utils.requests.get")
+    def test_get_json(self, test_url, test_payload, mock_get):
+        """Test that get_json returns expected result"""
+        mock_response = Mock()
+        mock_response.json.return_value = test_payload
+        mock_get.return_value = mock_response
+
+        result = utils.get_json(test_url)
+
+        mock_get.assert_called_once_with(test_url)
+        self.assertEqual(result, test_payload)
 
 
 if __name__ == "__main__":
