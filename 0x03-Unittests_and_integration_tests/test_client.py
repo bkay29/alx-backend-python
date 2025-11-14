@@ -87,31 +87,27 @@ class TestGithubOrgClient(unittest.TestCase):
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Integration tests for GithubOrgClient.public_repos"""
 
-    @classmethod
-    def setUpClass(cls):
-        """Set up patching for requests.get on the instance"""
-        # Attach patcher to an instance for checker compatibility
-        cls.instance = cls()
-        cls.instance.get_patcher = patch("client.requests.get")
-        cls.instance.mock_get = cls.instance.get_patcher.start()
+    def setUp(self):
+        """Start patching requests.get and store patcher on self"""
+        self.get_patcher = patch("client.requests.get")
+        self.mock_get = self.get_patcher.start()
 
-        # Side effect to return the correct fixture based on URL
+        # Side effect to return correct fixture based on URL
         def get_json_side_effect(url, *args, **kwargs):
             mock_resp = Mock()
             if url.endswith("/orgs/test-org"):
-                mock_resp.json.return_value = cls.instance.org_payload
+                mock_resp.json.return_value = self.org_payload
             elif url.endswith("/orgs/test-org/repos"):
-                mock_resp.json.return_value = cls.instance.repos_payload
+                mock_resp.json.return_value = self.repos_payload
             else:
                 mock_resp.json.return_value = {}
             return mock_resp
 
-        cls.instance.mock_get.side_effect = get_json_side_effect
+        self.mock_get.side_effect = get_json_side_effect
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         """Stop patching requests.get"""
-        cls.instance.get_patcher.stop()
+        self.get_patcher.stop()
 
     def test_public_repos(self):
         """Test public_repos returns expected repository names"""
