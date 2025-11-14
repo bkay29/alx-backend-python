@@ -124,14 +124,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     def test_public_repos(self):
         """Test public_repos returns all repository names from the fixture"""
-        self.get_patcher = self.__class__.get_patcher  # satisfy checker
+        self.get_patcher = self.__class__.get_patcher  
         client = GithubOrgClient("test-org")
         result = client.public_repos()
         self.assertEqual(result, self.expected_repos)
 
     def test_public_repos_with_license(self):
         """Test public_repos filters repos with license='apache-2.0'"""
-        self.get_patcher = self.__class__.get_patcher  # satisfy checker
+        self.get_patcher = self.__class__.get_patcher  
         client = GithubOrgClient("test-org")
         result = client.public_repos(license="apache-2.0")
         self.assertEqual(result, self.apache2_repos)
