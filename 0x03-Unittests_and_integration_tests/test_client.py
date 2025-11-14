@@ -2,9 +2,10 @@
 """Unit tests for client.GithubOrgClient"""
 
 import unittest
-from parameterized import parameterized
-from unittest.mock import patch, PropertyMock
+from parameterized import parameterized, parameterized_class
+from unittest.mock import patch, PropertyMock, Mock
 from client import GithubOrgClient
+from fixtures import org_payload, repos_payload, expected_repos, apache2_repos
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -75,5 +76,27 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(client.has_license(repo, license_key), expected)
 
 
-if __name__ == "__main__":
-    unittest.main()
+@parameterized_class([
+    {
+        "org_payload": org_payload,
+        "repos_payload": repos_payload,
+        "expected_repos": expected_repos,
+        "apache2_repos": apache2_repos
+    }
+])
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """Integration tests for GithubOrgClient.public_repos"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up class-level patching for requests.get"""
+        cls.get_patcher = patch("client.requests.get")
+        cls.mock_get = cls.get_patcher.start()
+
+        # Side effect to return correct fixture based on URL
+        def get_json_side_effect(url, *args, **kwargs):
+            mock_resp = Mock()
+            if url.endswith("/orgs/test-org"):
+                mock_resp.json.return_value = cls.org_payload
+            elif url.endswith("/orgs/test-org/repos"):
+                mock_resp.json.return_value = cls.repo
