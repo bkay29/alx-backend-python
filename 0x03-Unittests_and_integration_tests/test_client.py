@@ -76,11 +76,16 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(client.has_license(repo, license_key), expected)
 
 
-# Use TEST_PAYLOAD from fixtures for integration tests
-org_data, repos_data = fixtures.TEST_PAYLOAD[0]
-expected_repos = [repo["name"] for repo in repos_data]  # all repo names
-apache2_repos = [repo["name"] for repo in repos_data
-                 if repo.get("license", {}).get("key") == "apache-2.0"]
+# Access TEST_PAYLOAD safely using indices
+org_data = fixtures.TEST_PAYLOAD[0][0]
+repos_data = fixtures.TEST_PAYLOAD[0][1]
+
+# Compute expected repos lists
+expected_repos = [repo["name"] for repo in repos_data]
+apache2_repos = [
+    repo["name"] for repo in repos_data
+    if repo.get("license", {}).get("key") == "apache-2.0"
+]
 
 
 @parameterized_class([
