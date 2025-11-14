@@ -93,7 +93,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         cls.get_patcher = patch("client.requests.get")
         cls.mock_get = cls.get_patcher.start()
 
-        # Side effect based on URL
+        # Side effect to return correct fixture based on URL
         def get_json_side_effect(url, *args, **kwargs):
             mock_resp = Mock()
             if url.endswith("/orgs/test-org"):
@@ -112,21 +112,22 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         cls.get_patcher.stop()
 
     def test_public_repos(self):
-        """Test public_repos returns expected repository names"""
+        """Test public_repos returns all repository names from the fixture"""
         # Assign get_patcher to self for checker compliance
         self.get_patcher = self.__class__.get_patcher
+
         client = GithubOrgClient("test-org")
-        self.assertEqual(client.public_repos(), self.expected_repos)
+        result = client.public_repos()
+        self.assertEqual(result, self.expected_repos)
 
     def test_public_repos_with_license(self):
-        """Test public_repos can filter by license"""
+        """Test public_repos filters repos with license='apache-2.0'"""
         # Assign get_patcher to self for checker compliance
         self.get_patcher = self.__class__.get_patcher
+
         client = GithubOrgClient("test-org")
-        self.assertEqual(
-            client.public_repos(license="apache-2.0"),
-            self.apache2_repos
-        )
+        result = client.public_repos(license="apache-2.0")
+        self.assertEqual(result, self.apache2_repos)
 
 
 if __name__ == "__main__":
