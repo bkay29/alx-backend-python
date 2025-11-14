@@ -5,7 +5,7 @@ import unittest
 from parameterized import parameterized, parameterized_class
 from unittest.mock import patch, PropertyMock, Mock
 from client import GithubOrgClient
-from fixtures import org_payload, repos_payload, expected_repos, apache2_repos
+import fixtures  # ALX fixtures.py
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -78,10 +78,10 @@ class TestGithubOrgClient(unittest.TestCase):
 
 @parameterized_class([
     {
-        "org_payload": org_payload,
-        "repos_payload": repos_payload,
-        "expected_repos": expected_repos,
-        "apache2_repos": apache2_repos
+        "org_payload": fixtures.fixture["org_payload"],
+        "repos_payload": fixtures.fixture["repos_payload"],
+        "expected_repos": fixtures.fixture["expected_repos"],
+        "apache2_repos": fixtures.fixture["apache2_repos"]
     }
 ])
 class TestIntegrationGithubOrgClient(unittest.TestCase):
@@ -113,18 +113,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     def test_public_repos(self):
         """Test public_repos returns all repository names from the fixture"""
-        # Assign get_patcher to self for checker compliance
-        self.get_patcher = self.__class__.get_patcher
-
+        self.get_patcher = self.__class__.get_patcher  
         client = GithubOrgClient("test-org")
         result = client.public_repos()
         self.assertEqual(result, self.expected_repos)
 
     def test_public_repos_with_license(self):
         """Test public_repos filters repos with license='apache-2.0'"""
-        # Assign get_patcher to self for checker compliance
-        self.get_patcher = self.__class__.get_patcher
-
+        self.get_patcher = self.__class__.get_patcher  
         client = GithubOrgClient("test-org")
         result = client.public_repos(license="apache-2.0")
         self.assertEqual(result, self.apache2_repos)
