@@ -19,9 +19,12 @@ class User(AbstractUser):
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='guest')
     
+    # Explicit password field
+    password = models.CharField(max_length=128, null=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
-    USERNAME_FIELD = 'email'  # Use email to login
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     def __str__(self):
