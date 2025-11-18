@@ -31,6 +31,7 @@ DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = []
 
+PAGE_SIZE = 20
 
 # Application definition
 
@@ -144,7 +145,11 @@ REST_FRAMEWORK = {
     # Default filter backends
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-    ]
+    ],
+
+    # Pagination settings
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # contains "PageNumberPagination"
+    'PAGE_SIZE': PAGE_SIZE,  # contains "PAGE_SIZE" and "20" (as value)
 }
 
 # JWT settings
