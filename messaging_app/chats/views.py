@@ -8,6 +8,14 @@ from .auth import IsConversationParticipant
 from .permissions import IsParticipantOfConversation
 
 
+from django_filters.rest_framework import DjangoFilterBackend
+from .pagination import MessagePagination
+from .filters import MessageFilter
+
+
+HTTP_403_FORBIDDEN = status.HTTP_403_FORBIDDEN # requirement
+
+
 # --------- CONVERSATION VIEWSET ---------
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
@@ -36,7 +44,9 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated, IsConversationParticipant]
-    filter_backends = [filters.SearchFilter]  # "filters" check
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]  # "filters" check
+    filterset_class = MessageFilter
+    pagination_class = MessagePagination
     search_fields = ['sender__email', 'conversation__conversation_id']  # Optional
 
     def get_queryset(self):
