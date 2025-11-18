@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from .models import Conversation, Message, User
 from .serializers import ConversationSerializer, MessageSerializer
 from .auth import IsConversationParticipant
+from .permissions import IsParticipantOfConversation
 
 
 # --------- CONVERSATION VIEWSET ---------
