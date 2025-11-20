@@ -43,4 +43,38 @@ class RestrictAccessByTimeMiddleware:
         if not (start_allowed <= now <= end_allowed):
             return HttpResponseForbidden("Access to the chat is restricted during this time.")
 
+
+class OffensiveLanguageMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.ip_requests = {}  # { "ip": [timestamps] }
+        self.limit = 5
+        self.window_seconds = 60  # 1 minute window
+
+    def __call__(self, request):
+        # Only limit POST requests (messages)
+        if request.method == "POST":
+            ip = request.META.get("REMOTE_ADDR", "unknown")
+            now = datetime.now()
+
+            # Initialize list if no record exists
+            if ip not in self.ip_requests:
+                self.ip_requests[ip] = []
+
+            # Remove messages outside the 1-minute window
+            self.ip_requests[ip] = [
+                ts for ts in self.ip_requests[ip]
+                if now - ts < timedelta(seconds=self.window_seconds)
+            ]
+
+            # Check block condition
+            if len(self.ip_requests[ip]) >= self.limit:
+                return JsonResponse(
+                    {"error": "Rate limit exceeded. Try again later."},
+                    status=429
+                )
+
+            # Add current request timestamp
+            self.ip_requests[ip].append(now)
+
         return self.get_response(request)

@@ -61,6 +61,9 @@ MIDDLEWARE = [
 
     # time restriction middleware
     'chats.middleware.RestrictAccessByTimeMiddleware',
+
+    # offensive language limiting middleware
+    'chats.middleware.OffensiveLanguageMiddleware',
 ]
 
 ROOT_URLCONF = 'messaging_app.urls'
