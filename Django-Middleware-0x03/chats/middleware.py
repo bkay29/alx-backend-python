@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, time
-from django.http import HttpResponseForbidden
+from django.http import JsonResponse
 
 
 class RequestLoggingMiddleware:
@@ -76,5 +76,46 @@ class OffensiveLanguageMiddleware:
 
             # Add current request timestamp
             self.ip_requests[ip].append(now)
+
+
+class RolepermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Allow safe methods such as GET, HEAD, OPTIONS
+        # Only restrict actions that require admin/moderator
+        protected_paths = [
+            "/admin-actions/",
+            "/moderate/",
+            "/delete-message/",
+            "/manage-users/",
+        ]
+
+        # Only apply check if user is hitting protected paths
+        if any(request.path.startswith(p) for p in protected_paths):
+            user = request.user
+
+            # If user not authenticated OR does not have required role
+            # (Assuming user.role exists OR using is_staff / is_superuser fallback)
+            if not user.is_authenticated:
+                return JsonResponse(
+                    {"error": "Authentication required"},
+                    status=403
+                )
+
+            # Check role – modify based on your model structure
+            user_role = getattr(user, "role", None)
+
+            # Allowed: admin or moderator
+            allowed_roles = ["admin", "moderator"]
+
+            # Fallback: allow Django admins
+            if user_role not in allowed_roles and not user.is_staff and not user.is_superuser:
+                return JsonResponse(
+                    {"error": "Forbidden: insufficient permissions"},
+                    status=403
+                )
+
 
         return self.get_response(request)
