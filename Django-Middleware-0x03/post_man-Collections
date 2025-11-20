@@ -1,0 +1,182 @@
+{
+  "info": {
+    "name": "Messaging App API",
+    "_postman_id": "1a2b3c4d-5e6f-7g8h-9i10-jklmnopqrst",
+    "description": "Postman collection for testing messaging_app API endpoints (Conversations, Messages, JWT authentication)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/token/",
+              "protocol": "http",
+              "host": ["127","0","0","1"],
+              "port": "8000",
+              "path": ["api","token",""]
+            }
+          }
+        },
+        {
+          "name": "Refresh JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/token/refresh/",
+              "protocol": "http",
+              "host": ["127","0","0","1"],
+              "port": "8000",
+              "path": ["api","token","refresh",""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participants\": [\n    \"uuid-of-user-1\",\n    \"uuid-of-user-2\"\n  ]\n}"
+            },
+            "url": "http://127.0.0.1:8000/api/conversations/"
+          }
+        },
+        {
+          "name": "List Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "http://127.0.0.1:8000/api/conversations/"
+          }
+        },
+        {
+          "name": "Retrieve Conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": "http://127.0.0.1:8000/api/conversations/{{conversation_id}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversation\": \"{{conversation_id}}\",\n  \"sender\": \"{{user_id}}\",\n  \"message_body\": \"Hello from Postman!\"\n}"
+            },
+            "url": "http://127.0.0.1:8000/api/messages/"
+          }
+        },
+        {
+          "name": "List Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/messages/?conversation={{conversation_id}}",
+              "protocol": "http",
+              "host": ["127","0","0","1"],
+              "port": "8000",
+              "path": ["api","messages",""],
+              "query": [
+                {
+                  "key": "conversation",
+                  "value": "{{conversation_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "conversation_id",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    }
+  ]
+}
