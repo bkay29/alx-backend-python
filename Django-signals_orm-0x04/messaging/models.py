@@ -23,6 +23,8 @@ class MessageHistory(models.Model):
     )
     old_content = models.TextField()
     edited_at = models.DateTimeField(default=timezone.now)
+    edited_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+
 
     def __str__(self):
         return f"History for Message {self.message.id} at {self.edited_at}"       

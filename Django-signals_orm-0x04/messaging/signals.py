@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.auth.models import User
 
-from .models import Message, Notification
+from .models import Message, Notification, MessageHistory
 
 # notification on new message
 @receiver(post_save, sender=Message)
@@ -12,7 +12,7 @@ def create_notification(sender, instance, created, **kwargs):
         return
 
     try:
-        # Use . filter instead of . get to avoid exceptions
+        # Use .filter instead of .get to avoid exceptions
         receiver_user = User.objects.filter(id=instance.receiver.id).first()
         if receiver_user is None:
             return
@@ -26,15 +26,16 @@ def create_notification(sender, instance, created, **kwargs):
         # Avoid breaking signal chain
         pass
 
+
 # save message history before edit
 @receiver(pre_save, sender=Message)
 def save_message_history(sender, instance, **kwargs):
     """
     Trigger BEFORE a Message is saved.
-    If content has changed, store old version in MessageHistory.
+    If content has changed, store previous version in MessageHistory,
+    including who edited it if available.
     """
-
-    # If it's a NEW object, skip (no history to log)
+    # Skip new messages (no history to log)
     if not instance.pk:
         return
 
@@ -43,11 +44,15 @@ def save_message_history(sender, instance, **kwargs):
 
         # Only create history if content changed
         if old_message.content != instance.content:
+            # Capture the editor if set (views can assign instance.edited_by = request.user)
+            editor = getattr(instance, "edited_by", None)
+
             MessageHistory.objects.create(
                 message=old_message,
-                old_content=old_message.content
+                old_content=old_message.content,
+                edited_by=editor
             )
             instance.edited = True
 
     except (ObjectDoesNotExist, MultipleObjectsReturned):
-        pass    
+        pass
