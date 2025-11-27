@@ -26,3 +26,43 @@ def delete_user(request):
     messages.success(request, "Your account has been deleted.")
     return redirect("/")   # You can change this to any safe landing page
 
+
+# Recursive function to fetch all replies
+def get_replies(message):
+    replies = (
+        message.replies
+        .select_related("sender", "receiver", "parent_message")
+        .prefetch_related("replies")
+    )
+
+    result = []
+    for reply in replies:
+        result.append({
+            "message": reply,
+            "children": get_replies(reply)  # recursion
+        })
+    return result
+
+
+
+def thread_view(request, message_id):
+    # Fetch main message WITH optimizations
+    root_message = (
+        Message.objects
+        .filter(id=message_id)                          # requirement
+        .select_related("sender", "receiver")           # requirement
+        .prefetch_related("replies__sender", "replies__receiver")
+        .first()
+    )
+
+    if not root_message:
+        return render(request, "messaging/thread.html", {"error": "Message not found"})
+
+    # Build recursive threaded structure
+    thread = {
+        "message": root_message,
+        "children": get_replies(root_message)
+    }
+
+    return render(request, "messaging/thread.html", {"thread": thread})
+

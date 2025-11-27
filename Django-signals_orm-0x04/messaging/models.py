@@ -15,6 +15,15 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender} to {self.receiver}"
+    
+
+parent_message = models.ForeignKey(
+    "self",
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True,
+    related_name="replies"
+)
 
 
 class MessageHistory(models.Model):
@@ -38,4 +47,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user} - Message ID {self.message.id}"
-
