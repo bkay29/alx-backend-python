@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
+from .managers import UnreadMessagesManager   # <-- REQUIRED 
 class Message(models.Model):
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_messages"
@@ -13,17 +13,23 @@ class Message(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
     edited = models.BooleanField(default=False)
 
+    # REQUIRED FIELD: threaded conversations
+    parent_message = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies"
+    )
+
+    # REQUIRED FIELD: unread indicator
+    read = models.BooleanField(default=False)
+
+    # REQUIRED CUSTOM MANAGER
+    unread = UnreadMessagesManager()
+
     def __str__(self):
         return f"Message from {self.sender} to {self.receiver}"
-    
-
-parent_message = models.ForeignKey(
-    "self",
-    on_delete=models.CASCADE,
-    null=True,
-    blank=True,
-    related_name="replies"
-)
 
 
 class MessageHistory(models.Model):
@@ -32,11 +38,14 @@ class MessageHistory(models.Model):
     )
     old_content = models.TextField()
     edited_at = models.DateTimeField(default=timezone.now)
-    edited_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
+    # REQUIRED for audit trail
+    edited_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
-        return f"History for Message {self.message.id} at {self.edited_at}"       
+        return f"History for Message {self.message.id} at {self.edited_at}"
 
 
 class Notification(models.Model):
