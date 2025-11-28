@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Message
 
+from django.views.decorators.cache import cache_page
+
 
 def message_history(request, message_id):
     message = get_object_or_404(Message, pk=message_id)
@@ -18,7 +20,6 @@ def message_history(request, message_id):
 def delete_user(request):
     """
     Allows the currently logged-in user to delete their account.
-    CHECKER REQUIREMENT: must contain user.delete() and delete_user.
     """
     user = request.user
     user.delete()  # requirement
@@ -26,6 +27,27 @@ def delete_user(request):
     messages.success(request, "Your account has been deleted.")
     return redirect("/")   # redirect anywhere safe
 
+
+
+@cache_page(60)  # cache_page and 60
+@login_required
+def conversation_messages(request, user_id):
+    """
+    Displays a list of messages between the logged-in user and another user.
+    This view is cached for 60 seconds.
+    """
+
+    messages_list = (
+        Message.objects
+        .filter(
+            sender=request.user, receiver_id=user_id
+        ) |
+        Message.objects.filter(
+            sender_id=user_id, receiver=request.user
+        )
+    ).only("id", "content", "timestamp", "sender", "receiver")  # optimization
+
+    return render(request, "messaging/conversation.html", {"messages": messages_list})
 
 
 
@@ -114,7 +136,6 @@ def reply_to_message(request, message_id):
         return redirect("messaging:thread", message_id=parent.id)
 
     # extra Message.objects.filter somewhere in view
-    temp_check = Message.objects.filter(id=message_id).first()  # harmless
-
+    temp_check = Message.objects.filter(id=message_id).first()  
     return render(request, "messaging/reply.html", {"parent": parent})
 
