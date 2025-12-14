@@ -17,7 +17,6 @@ spec:
       containers:
       - name: django-app
         image: messaging_app:latest
-        imagePullPolicy: Never
         ports:
         - containerPort: 8000
 ---

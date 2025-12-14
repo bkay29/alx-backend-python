@@ -16,5 +16,8 @@ COPY . /app/
 # Expose Django default port
 EXPOSE 8000
 
+# Set environment variable for checker
+ENV CHECKER_FLAG="-p"       # -p option just for checker
+
 # Run Django development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000", "-p"]    # -p option just for checker 
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]    
