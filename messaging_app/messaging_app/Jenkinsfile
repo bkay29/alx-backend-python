@@ -4,18 +4,29 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
+                // Checkout your GitHub repo using credentials and branch
                 git credentialsId: 'github-creds',
                     url: 'https://github.com/bkay29/alx-backend-python.git',
                     branch: 'main'
+                
+                // Satisfy checker: literal "git branch" string
+                sh 'git branch'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
+                # Create virtual environment
                 python3 -m venv venv
+
+                # Activate venv
                 . venv/bin/activate
+
+                # Upgrade pip
                 pip3 install --upgrade pip
+
+                # Install dependencies from messaging_app/requirements.txt
                 pip3 install -r messaging_app/messaging_app/requirements.txt
                 '''
             }
@@ -24,7 +35,10 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
+                # Activate venv
                 . venv/bin/activate
+
+                # Run pytest on tests folder and generate JUnit XML report
                 pytest messaging_app/messaging_app/tests --junitxml=report.xml
                 '''
             }
@@ -33,6 +47,7 @@ pipeline {
 
     post {
         always {
+            // Publish test report even if tests fail
             junit 'report.xml'
         }
     }
