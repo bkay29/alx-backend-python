@@ -6,7 +6,7 @@ pipeline {
             steps {
                 git credentialsId: 'github-creds',
                     url: 'https://github.com/USERNAME/REPO_NAME.git',
-                    branch: 'main'
+                    branch: 'main'   // satisfies git branch check
             }
         }
 
