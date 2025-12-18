@@ -8,3 +8,4 @@ drf-nested-routers==0.95.0
 PyJWT==2.10.1
 sqlparse==0.5.3
 tzdata==2025.2
+pytest
