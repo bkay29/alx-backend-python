@@ -19,24 +19,23 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Python & Dependencies') {
             steps {
-                python('venv') {
-                    sh '''
-                    pip3 install --upgrade pip
-                    pip3 install -r messaging_app/messaging_app/requirements.txt
-                    '''
-                }
+                sh '''
+                apt-get update
+                apt-get install -y python3 python3-pip python3-venv
+
+                pip3 install --upgrade pip
+                pip3 install -r messaging_app/messaging_app/requirements.txt
+                '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                python('venv') {
-                    sh '''
-                    pytest messaging_app/messaging_app/tests --junitxml=report.xml
-                    '''
-                }
+                sh '''
+                pytest messaging_app/messaging_app/tests --junitxml=report.xml
+                '''
             }
         }
 
