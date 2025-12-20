@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI with Lint & Coverage
 
 # Run on push to main and PRs targeting main
 on:
@@ -46,15 +46,25 @@ jobs:
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r messaging_app/requirements.txt
+          pip install flake8 coverage pytest pytest-django
 
-      - name: Run Django tests
+      - name: Run Flake8 linting
         run: |
           . venv/bin/activate
-          pytest messaging_app/tests --junitxml=report.xml
+          flake8 messaging_app --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 messaging_app --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Upload test report
+      - name: Run Django tests with coverage
+        run: |
+          . venv/bin/activate
+          coverage run --source=messaging_app -m pytest messaging_app/tests
+          coverage xml -o coverage.xml
+          coverage report
+        
+
+      - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: test-report
-          path: report.xml
+          name: coverage-report
+          path: coverage.xml  
