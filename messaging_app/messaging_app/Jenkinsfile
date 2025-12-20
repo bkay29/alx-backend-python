@@ -1,53 +1,74 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "bkay29/messaging_app"
+        IMAGE_TAG  = "latest"
+    }
+
     stages {
+
         stage('Checkout Code') {
             steps {
-                // Checkout your GitHub repo using credentials and branch
-                git credentialsId: 'github-creds',
-                    url: 'https://github.com/bkay29/alx-backend-python.git',
-                    branch: 'main'
-                
-                // Satisfy checker: literal "git branch" string
+                git branch: 'main',
+                    credentialsId: 'github-creds',
+                    url: 'https://github.com/bkay29/alx-backend-python.git'
+
+                // checker requirement
                 sh 'git branch'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                # Create virtual environment
-                python3 -m venv venv
-
-                # Activate venv
-                . venv/bin/activate
-
-                # Upgrade pip
-                pip3 install --upgrade pip
-
-                # Install dependencies from messaging_app/requirements.txt
-                pip3 install -r messaging_app/messaging_app/requirements.txt
-                '''
+                python('venv') {
+                    sh '''
+                    pip3 install --upgrade pip
+                    pip3 install -r messaging_app/messaging_app/requirements.txt
+                    '''
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                # Activate venv
-                . venv/bin/activate
+                python('venv') {
+                    sh '''
+                    pytest messaging_app/messaging_app/tests --junitxml=report.xml
+                    '''
+                }
+            }
+        }
 
-                # Run pytest on tests folder and generate JUnit XML report
-                pytest messaging_app/messaging_app/tests --junitxml=report.xml
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                docker build \
+                  -f messaging_app/Dockerfile \
+                  -t $IMAGE_NAME:$IMAGE_TAG \
+                  messaging_app
                 '''
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
+                }
             }
         }
     }
 
     post {
         always {
-            // Publish test report even if tests fail
             junit 'report.xml'
         }
     }
